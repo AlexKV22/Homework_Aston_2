@@ -1,11 +1,17 @@
 package dao;
 
+import exception.NoDeleteUserException;
+import exception.NoSaveNewUserException;
+import exception.NoUpdateUserException;
+import exception.NotSuccessOpenSessionException;
 import hibernate_util.CreateSessionFactory;
 import model.User;
+import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 
 import java.util.Optional;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class DAOHibernateImpl implements DAO {
@@ -15,46 +21,78 @@ public class DAOHibernateImpl implements DAO {
 
     private Session getCurrentSession() {
         if (currentSession == null) {
-            currentSession = sessionFactory.openSession();
-            logger.info("Сессия Hibernate создана успешно");
+            try {
+                currentSession = sessionFactory.openSession();
+                logger.info("Сессия Hibernate создана успешно");
+            } catch (HibernateException e) {
+                logger.log(Level.WARNING,"Не удалось установить сессию", e);
+                throw new NotSuccessOpenSessionException("Не удалось установить сессию");
+            }
         }
         return currentSession;
     }
 
     @Override
-    public void create(User user) {
-        Session session = getCurrentSession();
-        session.beginTransaction();
-        session.persist(user);
-        session.getTransaction().commit();
-        if (!session.getTransaction().isActive()) {
-            logger.info("Транзакция создания user завершилась успешно");
+    public boolean create(User user) throws NoSaveNewUserException {
+        Session session = null;
+        try {
+            session = getCurrentSession();
+            session.beginTransaction();
+            session.persist(user);
+            session.getTransaction().commit();
+            return true;
+        } catch (HibernateException e) {
+            if (session != null) {
+                session.getTransaction().rollback();
+            }
+            throw new NoSaveNewUserException("Не удалось сохранить нового user", e);
+        } finally {
+            if (session != null) {
+                session.close();
+            }
         }
-        session.close();
     }
 
     @Override
-    public void update(User user) {
-        Session session = getCurrentSession();
-        session.beginTransaction();
-        session.merge(user);
-        session.getTransaction().commit();
-        if (!session.getTransaction().isActive()) {
-            logger.info("Транзакция изменения user завершилась успешно");
+    public boolean update(User user) throws NoUpdateUserException {
+        Session session = null;
+        try{
+            session = getCurrentSession();
+            session.beginTransaction();
+            session.merge(user);
+            session.getTransaction().commit();
+            return true;
+        } catch (HibernateException e) {
+            if (session != null) {
+                session.getTransaction().rollback();
+            }
+            throw new NoUpdateUserException("Не удалось обновить данные user", e);
+        } finally {
+            if (session != null) {
+                session.close();
+            }
         }
-        session.close();
     }
 
     @Override
-    public void delete(Long id) {
-        Session session = getCurrentSession();
-        session.beginTransaction();
-        session.remove(session.get(User.class, id));
-        session.getTransaction().commit();
-        if (!session.getTransaction().isActive()) {
-            logger.info("Транзакция удаления user завершилась успешно");
+    public boolean delete(Long id) throws NoDeleteUserException {
+        Session session = null;
+        try {
+            session = getCurrentSession();
+            session.beginTransaction();
+            session.remove(session.get(User.class, id));
+            session.getTransaction().commit();
+            return true;
+        } catch (HibernateException e) {
+            if (session != null) {
+                session.getTransaction().rollback();
+            }
+            throw new NoDeleteUserException("Не удалось удалить user", e);
+        } finally {
+            if (session != null) {
+                session.close();
+            }
         }
-        session.close();
     }
 
     @Override

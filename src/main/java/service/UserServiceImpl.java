@@ -2,11 +2,14 @@ package service;
 
 import dao.DAO;
 import dao.DAOHibernateImpl;
+import exception.NoDeleteUserException;
+import exception.NoSaveNewUserException;
+import exception.NoUpdateUserException;
 import model.User;
-import org.example.App;
 
 import java.time.LocalDate;
 import java.util.Optional;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class UserServiceImpl implements UserService {
@@ -20,7 +23,12 @@ public class UserServiceImpl implements UserService {
     @Override
     public void create(String name, String email, Integer age) {
         User user = new User(name, email, age, LocalDate.now());
-        dao.create(user);
+        try {
+            dao.create(user);
+            logger.info("Создание user завершилось успешно");
+        } catch (NoSaveNewUserException e) {
+            logger.log(Level.WARNING,"Не удалось сохранить нового user", e);
+        }
     }
 
     @Override
@@ -28,12 +36,22 @@ public class UserServiceImpl implements UserService {
         user.setName(name);
         user.setEmail(email);
         user.setAge(age);
-        dao.update(user);
+        try {
+            dao.update(user);
+            logger.info("Обновление user завершилось успешно");
+        } catch (NoUpdateUserException e) {
+            logger.log(Level.WARNING,"Не удалось обновить user", e);
+        }
     }
 
     @Override
     public void delete(Long id) {
-        dao.delete(id);
+        try {
+            dao.delete(id);
+            logger.info("Удаление user завершилось успешно");
+        } catch (NoDeleteUserException e) {
+            logger.log(Level.WARNING,"Не удалось удалить user", e);
+        }
     }
 
     @Override
