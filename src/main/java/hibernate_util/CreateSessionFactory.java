@@ -10,11 +10,14 @@ import java.util.logging.Logger;
 
 public class CreateSessionFactory {
     private static final Logger logger = Logger.getLogger(CreateSessionFactory.class.getName());
-    private static final SessionFactory sessionFactoryReady;
-    static {
+    private static SessionFactory sessionFactoryReady;
+
+    private static SessionFactory initSessionFactory() {
+        SessionFactory sessionFactory = null;
         try {
-            sessionFactoryReady = new Configuration().addAnnotatedClass(model.User.class).buildSessionFactory();
+            sessionFactory = new Configuration().addAnnotatedClass(model.User.class).buildSessionFactory();
             logger.info("Создание SessionFactory завершилось успешно");
+            return sessionFactory;
         } catch(HibernateException e) {
             logger.log(Level.WARNING,"Не удалось создать SessionFactory", e);
             throw new NoSuccessCreateSessionFactoryException("Не удалось создать SessionFactory");
@@ -24,6 +27,7 @@ public class CreateSessionFactory {
     private CreateSessionFactory() {}
 
     public static SessionFactory getSessionFactory() {
+        sessionFactoryReady = initSessionFactory();
         return sessionFactoryReady;
     }
 

@@ -15,9 +15,16 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class DAOHibernateImpl implements DAO {
-    private final SessionFactory sessionFactory = CreateSessionFactory.getSessionFactory();
+    private final SessionFactory sessionFactory;
     private Session currentSession;
     private static final Logger logger = Logger.getLogger(DAOHibernateImpl.class.getName());
+
+    public DAOHibernateImpl() {
+        this.sessionFactory = CreateSessionFactory.getSessionFactory();
+    }
+    public DAOHibernateImpl(SessionFactory sessionFactory) {
+        this.sessionFactory = sessionFactory;
+    }
 
     private Session getCurrentSession() {
         if (currentSession == null) {
@@ -36,11 +43,15 @@ public class DAOHibernateImpl implements DAO {
     public boolean create(User user) throws NoSaveNewUserException {
         Session session = null;
         try {
-            session = getCurrentSession();
-            session.beginTransaction();
-            session.persist(user);
-            session.getTransaction().commit();
-            return true;
+            if (user != null) {
+                session = getCurrentSession();
+                session.beginTransaction();
+                session.persist(user);
+                session.getTransaction().commit();
+                return true;
+            } else {
+                throw new NullPointerException("Не удалось сохранить нового user, user null");
+            }
         } catch (HibernateException e) {
             if (session != null) {
                 session.getTransaction().rollback();
@@ -80,9 +91,14 @@ public class DAOHibernateImpl implements DAO {
         try {
             session = getCurrentSession();
             session.beginTransaction();
-            session.remove(session.get(User.class, id));
-            session.getTransaction().commit();
-            return true;
+            User user = session.get(User.class, id);
+            if (user != null) {
+                session.remove(user);
+                session.getTransaction().commit();
+                return true;
+            } else {
+                throw new NoDeleteUserException("Не удалось удалить user, user null");
+            }
         } catch (HibernateException e) {
             if (session != null) {
                 session.getTransaction().rollback();

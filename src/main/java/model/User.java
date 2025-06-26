@@ -8,14 +8,15 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
 import lombok.Setter;
 import org.hibernate.proxy.HibernateProxy;
 
-import java.time.LocalDate;
+import java.sql.Date;
 import java.util.Objects;
 
 @Entity
-@Table(name = "users", schema = "aston")
+@Table (name = "users", schema = "aston")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -23,16 +24,16 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Column(name = "name")
+    @Column (nullable = false)
     private String name;
-    @Column(name="email")
+    @Column
     private String email;
-    @Column(name="age")
+    @Column
     private Integer age;
-    @Column(name="created_at")
-    private LocalDate created_at;
+    @Column
+    private java.sql.Date created_at;
 
-    public User(String name, String email, Integer age, LocalDate created_at) {
+    public User(String name, String email, Integer age, Date created_at) {
         this.name = name;
         this.email = email;
         this.age = age;

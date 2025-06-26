@@ -1,6 +1,6 @@
 package exception;
 
-public class NoUpdateUserException extends Exception {
+public class NoUpdateUserException extends RuntimeException {
     public NoUpdateUserException(String message, Throwable cause) {
         super(message, cause);
     }

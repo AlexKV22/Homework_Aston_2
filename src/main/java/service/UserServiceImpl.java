@@ -7,6 +7,7 @@ import exception.NoSaveNewUserException;
 import exception.NoUpdateUserException;
 import model.User;
 
+import java.sql.Date;
 import java.time.LocalDate;
 import java.util.Optional;
 import java.util.logging.Level;
@@ -19,15 +20,20 @@ public class UserServiceImpl implements UserService {
     public UserServiceImpl() {
         this.dao = new DAOHibernateImpl();
     }
+    public UserServiceImpl(DAO dao) {
+        this.dao = dao;
+    }
 
     @Override
     public void create(String name, String email, Integer age) {
-        User user = new User(name, email, age, LocalDate.now());
+        User user = new User(name, email, age, Date.valueOf(LocalDate.now()));
         try {
             dao.create(user);
             logger.info("Создание user завершилось успешно");
         } catch (NoSaveNewUserException e) {
             logger.log(Level.WARNING,"Не удалось сохранить нового user", e);
+        } catch (NullPointerException e) {
+            logger.log(Level.WARNING,"Не удалось сохранить нового user, user null", e);
         }
     }
 
@@ -58,6 +64,7 @@ public class UserServiceImpl implements UserService {
     public User read(Long id) {
         Optional<User> read = dao.read(id);
         if (read.isPresent()) {
+            logger.info("Чтение user завершилось успешно");
             return read.get();
         } else {
             logger.warning(String.format("Не найден user c id: %s", id));

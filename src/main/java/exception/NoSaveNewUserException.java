@@ -1,6 +1,6 @@
 package exception;
 
-public class NoSaveNewUserException extends Exception {
+public class NoSaveNewUserException extends RuntimeException {
     public NoSaveNewUserException(String message, Throwable cause) {
         super(message, cause);
     }
