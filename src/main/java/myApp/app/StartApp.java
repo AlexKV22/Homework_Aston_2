@@ -1,18 +1,26 @@
-package org.example;
+package myApp.app;
 
-import hibernate_util.CreateSessionFactory;
-import model.User;
-import service.UserService;
-import service.UserServiceImpl;
+import myApp.model.User;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+import myApp.service.UserService;
+
 import java.util.Scanner;
 import java.util.logging.Logger;
 
-
-public class App {
+@Component
+public class StartApp {
     private static final Scanner scanner = new Scanner(System.in);
-    private static final Logger logger = Logger.getLogger(App.class.getName());
-    public static void main( String[] args ) {
-        UserService userService = new UserServiceImpl();
+    private static final Logger logger = Logger.getLogger(StartApp.class.getName());
+    private final UserService userService;
+
+    @Autowired
+    public StartApp(@Qualifier("userServiceImpl") UserService userService) {
+        this.userService = userService;
+    }
+
+    public void start() {
         System.out.println("Выберите операцию работы с user:\n 1 - Создание.\n 2 - Изменение. \n 3 - Удаление. \n 4 - Чтение.");
         switch(scanner.nextInt()) {
             case 1: {
@@ -63,6 +71,5 @@ public class App {
             }
         }
         scanner.close();
-        CreateSessionFactory.shutdownFactory();
     }
 }

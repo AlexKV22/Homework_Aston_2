@@ -1,11 +1,12 @@
-package service;
+package myApp.service;
 
-import dao.DAO;
-import dao.DAOHibernateImpl;
-import exception.NoDeleteUserException;
-import exception.NoSaveNewUserException;
-import exception.NoUpdateUserException;
-import model.User;
+import myApp.dao.DAO;
+import myApp.model.User;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.dao.DataAccessException;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Date;
 import java.time.LocalDate;
@@ -13,56 +14,70 @@ import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+@Service
 public class UserServiceImpl implements UserService {
     private static final Logger logger = Logger.getLogger(UserServiceImpl.class.getName());
     private final DAO dao;
 
-    public UserServiceImpl() {
-        this.dao = new DAOHibernateImpl();
-    }
-    public UserServiceImpl(DAO dao) {
+    @Autowired
+    public UserServiceImpl(@Qualifier("DAO") DAO dao) {
         this.dao = dao;
     }
 
     @Override
-    public void create(String name, String email, Integer age) {
+    @Transactional
+    public boolean create(String name, String email, Integer age) {
         User user = new User(name, email, age, Date.valueOf(LocalDate.now()));
         try {
-            dao.create(user);
-            logger.info("Создание user завершилось успешно");
-        } catch (NoSaveNewUserException e) {
+            if (user == null) {
+                throw new NullPointerException("Не удалось сохранить нового user, user null");
+            } else {
+                dao.save(user);
+                logger.info("Создание user завершилось успешно");
+                return true;
+            }
+        } catch (DataAccessException e) {
             logger.log(Level.WARNING,"Не удалось сохранить нового user", e);
+            return false;
         } catch (NullPointerException e) {
             logger.log(Level.WARNING,"Не удалось сохранить нового user, user null", e);
+            return false;
         }
     }
 
     @Override
-    public void update(String name, String email, Integer age, User user) {
+    @Transactional
+    public boolean update(String name, String email, Integer age, User user) {
         user.setName(name);
         user.setEmail(email);
         user.setAge(age);
         try {
-            dao.update(user);
+            dao.save(user);
             logger.info("Обновление user завершилось успешно");
-        } catch (NoUpdateUserException e) {
+            return true;
+        } catch (DataAccessException e) {
             logger.log(Level.WARNING,"Не удалось обновить user", e);
         }
+        return false;
     }
 
     @Override
-    public void delete(Long id) {
+    @Transactional
+    public boolean delete(Long id) {
         try {
-            dao.delete(id);
+            dao.deleteById(id);
             logger.info("Удаление user завершилось успешно");
-        } catch (NoDeleteUserException e) {
+            return true;
+        } catch (DataAccessException e) {
             logger.log(Level.WARNING,"Не удалось удалить user", e);
         }
+        return false;
     }
 
     @Override
+    @Transactional
     public User read(Long id) {
-        Optional<User> read = dao.read(id);
+        Optional<User> read = dao.findById(id);
         if (read.isPresent()) {
             logger.info("Чтение user завершилось успешно");
             return read.get();

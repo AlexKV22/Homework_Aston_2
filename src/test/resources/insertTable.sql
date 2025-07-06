@@ -1,0 +1,1 @@
+INSERT INTO aston.users (name, email, age, created_at) VALUES ('EGOR', '234@', 345, '2025-07-06');

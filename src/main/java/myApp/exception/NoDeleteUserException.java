@@ -1,4 +1,4 @@
-package exception;
+package myApp.exception;
 
 public class NoDeleteUserException extends RuntimeException {
     public NoDeleteUserException(String message, Throwable cause) {
