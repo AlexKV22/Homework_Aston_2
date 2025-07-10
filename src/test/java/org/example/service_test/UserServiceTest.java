@@ -1,67 +1,127 @@
 package org.example.service_test;
 
-import myApp.dao.DAO;
+import myApp.converter.UserMapper;
+import myApp.dto.dtoRequest.UserRequestDto;
+import myApp.dto.dtoResponse.UserResponseDto;
+import myApp.exception.UserNotFoundException;
 import myApp.model.User;
-import myApp.service.UserService;
+import myApp.repository.dto.UserRepositoryDtoImpl;
+import myApp.service.UserServiceImpl;
 import org.example.TestConfig;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.dao.DataAccessResourceFailureException;
 
 
+import java.sql.Date;
+import java.time.LocalDate;
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.when;
 
 @SpringBootTest(classes = TestConfig.class)
 class UserServiceTest {
 
-    @Qualifier("mockDaoTest")
+    @Mock
+    private UserRepositoryDtoImpl userRepositoryDto;
+
+    @InjectMocks
+    private UserServiceImpl userService;
+
     @Autowired
-    private DAO dao;
-    @Qualifier("mockUserService")
-    @Autowired
-    private UserService userService;
+    UserMapper userMapper;
 
     @Test
     void createValidUserTest() {
-        Mockito.when(dao.save(any(User.class))).thenReturn(any(User.class));
-        boolean b = userService.create("MASHA", "jgdghdhg", 45);
-        Assertions.assertTrue(b);
+        User user = new User("ENOT", "ssdsds", 56, Date.valueOf(LocalDate.now()));
+        user.setId(1L);
+        UserResponseDto userResponseDto = userMapper.entityToDto(user);
+        when(userRepositoryDto.create(user)).thenReturn(userResponseDto);
+        UserResponseDto userResponseDtoUser = userService.create(user);
+        Mockito.verify(userRepositoryDto, Mockito.times(1)).create(user);
+        Assertions.assertEquals(userResponseDto, userResponseDtoUser);
     }
 
-    @Test
-    void createUserWithNull() {
-        Mockito.when(dao.save(any(User.class))).thenThrow(NullPointerException.class);
-        boolean b = userService.create("EGOR", "345SDD", 56);
-        System.out.println(b);
-        Assertions.assertFalse(b);
-    }
 
     @Test
     void createInvalidUserTest() {
-        Mockito.when(dao.save(any(User.class))).thenThrow(DataAccessResourceFailureException.class);
-        boolean b = userService.create("EGOR", "345SDD", 56);
-        Assertions.assertFalse(b);
+        User user = new User(null, "sddsd", 45, Date.valueOf(LocalDate.now()));
+        when(userRepositoryDto.create(any(User.class))).thenThrow(new IllegalArgumentException("Cannot be null"));
+        Assertions.assertThrows(IllegalArgumentException.class, () -> userService.create(user));
+        Mockito.verify(userRepositoryDto, Mockito.times(1)).create(user);
     }
-
 
     @Test
     void readValidUserTest() {
-        Mockito.when(dao.findById(anyLong())).thenReturn(Optional.of(new User()));
-        User read = userService.read(anyLong());
-        Assertions.assertNotNull(read);
+        User user = new User("ENOT", "ssdsds", 56, Date.valueOf(LocalDate.now()));
+        user.setId(1L);
+        UserResponseDto userResponseDto = userMapper.entityToDto(user);
+        when(userRepositoryDto.findById(1L)).thenReturn(Optional.of(user));
+        when(userRepositoryDto.getResponseDto(user)).thenReturn(userResponseDto);
+        UserResponseDto read = userService.read(1L);
+        Assertions.assertEquals(userResponseDto, read);
+        Mockito.verify(userRepositoryDto, Mockito.times(1)).findById(1L);
     }
 
     @Test
     void readInvalidUserTest() {
-        Mockito.when(dao.findById(anyLong())).thenReturn(Optional.ofNullable(null));
-        User read = userService.read(anyLong());
-        Assertions.assertNull(read);
+        when(userRepositoryDto.findById(anyLong())).thenReturn(Optional.ofNullable(null));
+        Assertions.assertThrows(UserNotFoundException.class, () -> userService.read(anyLong()));
+        Mockito.verify(userRepositoryDto, Mockito.times(1)).findById(anyLong());
+    }
+
+    @Test
+    void updateValidUserTest() {
+        UserRequestDto userRequestDto = new UserRequestDto("MOLOKO", "rith", 100);
+        User userFromRequest = userMapper.dtoToEntity(userRequestDto);
+
+        User user = new User("ENOT", "ssdsds", 56, Date.valueOf(LocalDate.now()));
+        user.setId(1L);
+
+        User updatedUser = new User(userRequestDto.name(),
+                userRequestDto.email(),
+                userRequestDto.age(),
+                user.getCreated_at());
+        updatedUser.setId(1L);
+
+        UserResponseDto userResponseDto = userMapper.entityToDto(updatedUser);
+        Mockito.when(userRepositoryDto.findById(1L)).thenReturn(Optional.of(user));
+        Mockito.when(userRepositoryDto.update(userFromRequest)).thenReturn(userResponseDto);
+        UserResponseDto update = userService.update(userFromRequest, 1L);
+        Assertions.assertEquals(userResponseDto.id(), update.id());
+        Assertions.assertEquals(userResponseDto.name(), update.name());
+        Assertions.assertEquals(userResponseDto.email(), update.email());
+        Mockito.verify(userRepositoryDto, Mockito.times(1)).findById(1L);
+    }
+
+    @Test
+    void updateInvalidUserTest() {
+        UserRequestDto userRequestDto = new UserRequestDto("MOLOKO", "rith", 100);
+        User userFromRequest = userMapper.dtoToEntity(userRequestDto);
+        Mockito.when(userRepositoryDto.findById(1L)).thenReturn(Optional.ofNullable(null));
+        Assertions.assertThrows(UserNotFoundException.class, () -> userService.update(userFromRequest, 1L));
+        Mockito.verify(userRepositoryDto, Mockito.times(1)).findById(1L);
+    }
+
+    @Test
+    void deleteValidUserTest() {
+        User user = new User("ENOT", "ssdsds", 56, Date.valueOf(LocalDate.now()));
+        user.setId(1L);
+        Mockito.when(userRepositoryDto.findById(1L)).thenReturn(Optional.of(user));
+        Assertions.assertDoesNotThrow(() -> userService.delete(1L));
+        Mockito.verify(userRepositoryDto, Mockito.times(1)).findById(1L);
+    }
+
+    @Test
+    void deleteInvalidUserTest() {
+        when(userRepositoryDto.findById(anyLong())).thenReturn(Optional.ofNullable(null));
+        Assertions.assertThrows(UserNotFoundException.class, () -> userService.delete(anyLong()));
+        Mockito.verify(userRepositoryDto, Mockito.times(1)).findById(anyLong());
     }
 }

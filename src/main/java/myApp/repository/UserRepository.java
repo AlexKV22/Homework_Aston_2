@@ -1,9 +1,9 @@
-package myApp.dao;
+package myApp.repository;
 
 import myApp.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface DAO extends JpaRepository<User, Long> {
+public interface UserRepository extends JpaRepository<User, Long> {
 }

@@ -1,6 +1,6 @@
 package org.example;
 
-import myApp.dao.DAO;
+import myApp.repository.UserRepository;
 import myApp.service.UserService;
 import myApp.service.UserServiceImpl;
 import org.mockito.Mockito;
@@ -14,14 +14,14 @@ import org.springframework.context.annotation.Configuration;
 @ComponentScan("myApp")
 public class TestConfig {
 
-    @Bean
-    public DAO mockDaoTest() {
-        return Mockito.mock(DAO.class);
-    }
+//    @Bean
+//    public UserRepository mockDaoTest() {
+//        return Mockito.mock(UserRepository.class);
+//    }
 
-    @Bean
-    public UserService mockUserService(@Qualifier("mockDaoTest") DAO mockDaoTest) {
-        return new UserServiceImpl(mockDaoTest);
-    }
+//    @Bean
+//    public UserService mockUserService(@Qualifier("mockDaoTest") UserRepository mockUserRepositoryTest) {
+//        return new UserServiceImpl(mockUserRepositoryTest);
+//    }
 
 }

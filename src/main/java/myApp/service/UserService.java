@@ -1,10 +1,11 @@
 package myApp.service;
 
+import myApp.dto.dtoResponse.UserResponseDto;
 import myApp.model.User;
 
 public interface UserService {
-    boolean create(String name, String email, Integer age);
-    boolean update(String name, String email, Integer age, User user);
-    boolean delete(Long id);
-    User read(Long id);
+    UserResponseDto create(User user);
+    UserResponseDto update(User user, Long id);
+    void delete(Long id);
+    UserResponseDto read(Long id);
 }

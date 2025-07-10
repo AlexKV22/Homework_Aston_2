@@ -1,15 +1,16 @@
-package org.example.dao_test;
+package org.example.repository_test;
 
-import myApp.dao.DAO;
+import myApp.repository.UserRepository;
 import myApp.model.User;
 import org.example.TestConfig;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.dao.DataAccessException;
 import org.springframework.test.context.jdbc.Sql;
+import org.springframework.transaction.TransactionSystemException;
+
 import java.sql.Date;
 import java.time.LocalDate;
 import java.util.Optional;
@@ -18,11 +19,10 @@ import java.util.Optional;
 
 @SpringBootTest(classes = TestConfig.class)
 @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_CLASS, value = "/schemaAndTableDrop.sql")
-class DaoTest {
+class RepositoryTest {
 
-    @Qualifier("DAO")
     @Autowired
-    private DAO bean;
+    private UserRepository bean;
 
 
     @Test
@@ -99,6 +99,6 @@ class DaoTest {
         user.setEmail("marta@gmail.com");
         user.setAge(345);
         user.setCreated_at(Date.valueOf(LocalDate.now()));
-        Assertions.assertThrows(DataAccessException.class, () -> bean.save(user));
+        Assertions.assertThrows(TransactionSystemException.class, () -> bean.save(user));
     }
 }

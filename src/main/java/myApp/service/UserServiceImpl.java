@@ -1,9 +1,13 @@
 package myApp.service;
 
-import myApp.dao.DAO;
+import myApp.dto.dtoResponse.UserResponseDto;
+import myApp.exception.NoDeleteUserException;
+import myApp.exception.NoSaveNewUserException;
+import myApp.exception.NoUpdateUserException;
+import myApp.exception.UserNotFoundException;
 import myApp.model.User;
+import myApp.repository.dto.UserRepositoryDto;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,73 +21,76 @@ import java.util.logging.Logger;
 @Service
 public class UserServiceImpl implements UserService {
     private static final Logger logger = Logger.getLogger(UserServiceImpl.class.getName());
-    private final DAO dao;
+    private final UserRepositoryDto userRepositoryDto;
 
     @Autowired
-    public UserServiceImpl(@Qualifier("DAO") DAO dao) {
-        this.dao = dao;
+    public UserServiceImpl(UserRepositoryDto userRepositoryDto) {
+        this.userRepositoryDto = userRepositoryDto;
     }
 
     @Override
     @Transactional
-    public boolean create(String name, String email, Integer age) {
-        User user = new User(name, email, age, Date.valueOf(LocalDate.now()));
+    public UserResponseDto create(User user) {
         try {
-            if (user == null) {
-                throw new NullPointerException("Не удалось сохранить нового user, user null");
-            } else {
-                dao.save(user);
-                logger.info("Создание user завершилось успешно");
-                return true;
-            }
+            user.setCreated_at(Date.valueOf(LocalDate.now()));
+            UserResponseDto userResponseDto = userRepositoryDto.create(user);
+            logger.info("Создание user завершилось успешно");
+            return userResponseDto;
         } catch (DataAccessException e) {
             logger.log(Level.WARNING,"Не удалось сохранить нового user", e);
-            return false;
-        } catch (NullPointerException e) {
-            logger.log(Level.WARNING,"Не удалось сохранить нового user, user null", e);
-            return false;
+            throw new NoSaveNewUserException("Не удалось сохранить нового user", e);
         }
     }
 
     @Override
     @Transactional
-    public boolean update(String name, String email, Integer age, User user) {
-        user.setName(name);
-        user.setEmail(email);
-        user.setAge(age);
+    public UserResponseDto update(User user, Long id) {
         try {
-            dao.save(user);
-            logger.info("Обновление user завершилось успешно");
-            return true;
+            Optional<User> byId = userRepositoryDto.findById(id);
+            if (byId.isPresent()) {
+                user.setId(id);
+                user.setCreated_at(byId.get().getCreated_at());
+                logger.info("Обновление user завершилось успешно");
+                return userRepositoryDto.update(user);
+            } else {
+                logger.log(Level.WARNING, String.format("Не удалось найти юзера с id = %s", id));
+                throw new UserNotFoundException(String.format("Не удалось найти юзера с id = %s", id));
+            }
         } catch (DataAccessException e) {
             logger.log(Level.WARNING,"Не удалось обновить user", e);
+            throw new NoUpdateUserException("Не удалось обновить user", e);
         }
-        return false;
     }
 
     @Override
     @Transactional
-    public boolean delete(Long id) {
+    public void delete(Long id) {
         try {
-            dao.deleteById(id);
-            logger.info("Удаление user завершилось успешно");
-            return true;
+            Optional<User> byId = userRepositoryDto.findById(id);
+            if (byId.isPresent()) {
+                userRepositoryDto.deleteById(id);
+                logger.info("Удаление user завершилось успешно");
+            } else {
+                logger.log(Level.WARNING, String.format("Не удалось найти юзера с id = %s", id));
+                throw new UserNotFoundException(String.format("Не удалось найти юзера с id = %s", id));
+            }
         } catch (DataAccessException e) {
             logger.log(Level.WARNING,"Не удалось удалить user", e);
+            throw new NoDeleteUserException("Не удалось удалить user", e);
         }
-        return false;
     }
 
     @Override
-    @Transactional
-    public User read(Long id) {
-        Optional<User> read = dao.findById(id);
-        if (read.isPresent()) {
+    @Transactional(readOnly = true)
+    public UserResponseDto read(Long id) {
+        Optional<User> readUser = userRepositoryDto.findById(id);
+        if (readUser.isPresent()) {
+            UserResponseDto responseDto = userRepositoryDto.getResponseDto(readUser.get());
             logger.info("Чтение user завершилось успешно");
-            return read.get();
+            return responseDto;
         } else {
-            logger.warning(String.format("Не найден user c id: %s", id));
-            return null;
+            logger.log(Level.WARNING, String.format("Не удалось найти юзера с id = %s", id));
+            throw new UserNotFoundException(String.format("Не удалось найти юзера с id = %s", id));
         }
     }
 }
