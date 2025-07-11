@@ -7,8 +7,10 @@ import myApp.exception.NoUpdateUserException;
 import myApp.exception.UserNotFoundException;
 import myApp.model.User;
 import myApp.repository.dto.UserRepositoryDto;
+import myApp.userTempKafka.UserTempKafka;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,10 +24,12 @@ import java.util.logging.Logger;
 public class UserServiceImpl implements UserService {
     private static final Logger logger = Logger.getLogger(UserServiceImpl.class.getName());
     private final UserRepositoryDto userRepositoryDto;
+    private final KafkaTemplate<String, UserTempKafka> kafkaTemplate;
 
     @Autowired
-    public UserServiceImpl(UserRepositoryDto userRepositoryDto) {
+    public UserServiceImpl(UserRepositoryDto userRepositoryDto, KafkaTemplate<String, UserTempKafka> kafkaTemplate) {
         this.userRepositoryDto = userRepositoryDto;
+        this.kafkaTemplate = kafkaTemplate;
     }
 
     @Override
@@ -35,6 +39,11 @@ public class UserServiceImpl implements UserService {
             user.setCreated_at(Date.valueOf(LocalDate.now()));
             UserResponseDto userResponseDto = userRepositoryDto.create(user);
             logger.info("Создание user завершилось успешно");
+            UserTempKafka userTempKafka = new UserTempKafka();
+            userTempKafka.setEmail(user.getEmail());
+            userTempKafka.setCreateOrDelete("Create");
+            kafkaTemplate.send("test-topic", userTempKafka);
+            logger.info("Продюсер успешно отправил в Kafka сообщение о создании юзера");
             return userResponseDto;
         } catch (DataAccessException e) {
             logger.log(Level.WARNING,"Не удалось сохранить нового user", e);
@@ -70,6 +79,11 @@ public class UserServiceImpl implements UserService {
             if (byId.isPresent()) {
                 userRepositoryDto.deleteById(id);
                 logger.info("Удаление user завершилось успешно");
+                UserTempKafka userTempKafka = new UserTempKafka();
+                userTempKafka.setEmail(byId.get().getEmail());
+                userTempKafka.setCreateOrDelete("Delete");
+                kafkaTemplate.send("test-topic", userTempKafka);
+                logger.info("Продюсер успешно отправил в Kafka сообщение об удалении юзера");
             } else {
                 logger.log(Level.WARNING, String.format("Не удалось найти юзера с id = %s", id));
                 throw new UserNotFoundException(String.format("Не удалось найти юзера с id = %s", id));
