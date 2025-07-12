@@ -13,15 +13,4 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ComponentScan("myApp")
 public class TestConfig {
-
-//    @Bean
-//    public UserRepository mockDaoTest() {
-//        return Mockito.mock(UserRepository.class);
-//    }
-
-//    @Bean
-//    public UserService mockUserService(@Qualifier("mockDaoTest") UserRepository mockUserRepositoryTest) {
-//        return new UserServiceImpl(mockUserRepositoryTest);
-//    }
-
 }

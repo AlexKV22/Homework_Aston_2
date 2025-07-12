@@ -38,21 +38,21 @@ class RepositoryTest {
     @Test
     @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, value = "/insertTable.sql")
     @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, value = "/truncateTable.sql")
-    void createUserWithNull() {
+    void createUserWithNullTest() {
         Assertions.assertThrows(DataAccessException.class, () -> bean.save(null));
     }
 
     @Test
     @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, value = "/insertTable.sql")
     @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, value = "/truncateTable.sql")
-    void deleteInvalidUser() {
+    void deleteInvalidUserTest() {
         Assertions.assertDoesNotThrow(() -> bean.deleteById(2L));
     }
 
     @Test
     @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, value = "/insertTable.sql")
     @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, value = "/truncateTable.sql")
-    void deleteValidUser() {
+    void deleteValidUserTest() {
         bean.deleteById(1L);
         Optional<User> byId = bean.findById(1L);
         Assertions.assertFalse(byId.isPresent());
@@ -78,7 +78,7 @@ class RepositoryTest {
     @Test
     @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, value = "/insertTable.sql")
     @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, value = "/truncateTable.sql")
-    void updateValidUserValid() {
+    void updateValidUserValidTest() {
         User user = bean.findById(1L).get();
         user.setName("Marta");
         user.setEmail("marta@gmail.com");
@@ -93,7 +93,7 @@ class RepositoryTest {
     @Test
     @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, value = "/insertTable.sql")
     @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, value = "/truncateTable.sql")
-    void updateValidUserInvalid() {
+    void updateValidUserInvalidTest() {
         User user = bean.findById(1L).get();
         user.setName(null);
         user.setEmail("marta@gmail.com");

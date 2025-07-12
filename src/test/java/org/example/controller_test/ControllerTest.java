@@ -38,7 +38,7 @@ class ControllerTest {
 
 
     @Test
-    void createUser() throws Exception {
+    void createUserTest() throws Exception {
         UserRequestDto userRequestDto = new UserRequestDto("EGORKA", "23esd", 600);
         UserResponseDto userResponseDto = new UserResponseDto(1L, "EGORKA", "23esd", 600);
         Mockito.when(userServiceDto.create(userRequestDto)).thenReturn(userResponseDto);
@@ -49,7 +49,7 @@ class ControllerTest {
     }
 
     @Test
-    void updateUser() throws Exception {
+    void updateUserTest() throws Exception {
         UserRequestDto userRequestDto = new UserRequestDto("EGORKA", "23esd", 600);
         UserResponseDto userResponseDto = new UserResponseDto(1L, "MISHA", "23esd", 600);
         Mockito.when(userServiceDto.update(userRequestDto, 1L)).thenReturn(userResponseDto);
@@ -61,13 +61,13 @@ class ControllerTest {
     }
 
     @Test
-    void deleteValidUser() throws Exception {
+    void deleteValidUserTest() throws Exception {
         mockMvc.perform(delete("/user/delete/{userId}", 1L)).andExpect(status().isNoContent());
         Mockito.verify(userServiceDto, Mockito.times(1)).delete(1L);
     }
 
     @Test
-    void getUser() throws Exception {
+    void getUserTest() throws Exception {
         mockMvc.perform(get("/user/get/{userId}", 1L)).andExpect(status().isOk());
     }
 
