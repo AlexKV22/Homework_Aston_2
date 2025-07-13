@@ -3,6 +3,7 @@ package myApp.exceptionHandler;
 import myApp.exception.NoDeleteUserException;
 import myApp.exception.NoSaveNewUserException;
 import myApp.exception.NoUpdateUserException;
+import myApp.exception.UniqueFieldException;
 import myApp.exception.UserNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,7 +25,7 @@ public class ExceptionHandler {
 
     @org.springframework.web.bind.annotation.ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<String> handleNoFoundUserException(UserNotFoundException e) {
-        return ResponseEntity.notFound().build();
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
     }
 
     @org.springframework.web.bind.annotation.ExceptionHandler(NoUpdateUserException.class)
@@ -48,5 +49,10 @@ public class ExceptionHandler {
             errors.put(fieldName, errorMessage);
         });
         return errors;
+    }
+
+    @org.springframework.web.bind.annotation.ExceptionHandler(UniqueFieldException.class)
+    public ResponseEntity<String> uniqueFieldException(UniqueFieldException e) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
     }
 }

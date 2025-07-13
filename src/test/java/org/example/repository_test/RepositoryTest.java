@@ -1,8 +1,8 @@
 package org.example.repository_test;
 
+import myApp.App;
 import myApp.repository.UserRepository;
 import myApp.model.User;
-import org.example.TestConfig;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +17,7 @@ import java.util.Optional;
 
 
 
-@SpringBootTest(classes = TestConfig.class)
+@SpringBootTest(classes = App.class)
 @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_CLASS, value = "/schemaAndTableDrop.sql")
 class RepositoryTest {
 

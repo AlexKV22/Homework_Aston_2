@@ -1,5 +1,6 @@
 package org.example.service_test;
 
+import myApp.App;
 import myApp.converter.UserMapper;
 import myApp.dto.dtoRequest.UserRequestDto;
 import myApp.dto.dtoResponse.UserResponseDto;
@@ -7,7 +8,6 @@ import myApp.exception.UserNotFoundException;
 import myApp.model.User;
 import myApp.repository.dto.UserRepositoryDtoImpl;
 import myApp.service.UserServiceImpl;
-import org.example.TestConfig;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -25,7 +25,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 
-@SpringBootTest(classes = TestConfig.class)
+@SpringBootTest(classes = App.class)
 class UserServiceTest {
 
     @Mock
@@ -52,8 +52,8 @@ class UserServiceTest {
     @Test
     void createInvalidUserTest() {
         User user = new User(null, "sddsd", 45, Date.valueOf(LocalDate.now()));
-        when(userRepositoryDto.create(any(User.class))).thenThrow(new IllegalArgumentException("Cannot be null"));
-        Assertions.assertThrows(IllegalArgumentException.class, () -> userService.create(user));
+        when(userRepositoryDto.create(any(User.class))).thenThrow(new NullPointerException("Cannot be null"));
+        Assertions.assertThrows(NullPointerException.class, () -> userService.create(user));
         Mockito.verify(userRepositoryDto, Mockito.times(1)).create(user);
     }
 

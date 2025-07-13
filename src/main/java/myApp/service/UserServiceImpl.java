@@ -4,10 +4,14 @@ import myApp.dto.dtoResponse.UserResponseDto;
 import myApp.exception.NoDeleteUserException;
 import myApp.exception.NoSaveNewUserException;
 import myApp.exception.NoUpdateUserException;
+import myApp.exception.UniqueFieldException;
 import myApp.exception.UserNotFoundException;
 import myApp.model.User;
 import myApp.repository.dto.UserRepositoryDto;
 import myApp.userTempKafka.UserTempKafka;
+import org.hibernate.exception.ConstraintViolationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -17,12 +21,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.sql.Date;
 import java.time.LocalDate;
 import java.util.Optional;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 @Service
 public class UserServiceImpl implements UserService {
-    private static final Logger logger = Logger.getLogger(UserServiceImpl.class.getName());
+    private final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
     private final UserRepositoryDto userRepositoryDto;
     private final KafkaTemplate<String, UserTempKafka> kafkaTemplate;
 
@@ -43,11 +45,14 @@ public class UserServiceImpl implements UserService {
             userTempKafka.setEmail(user.getEmail());
             userTempKafka.setCreateOrDelete("Create");
             kafkaTemplate.send("test-topic", userTempKafka);
-            logger.info("Продюсер успешно отправил в Kafka сообщение о создании юзера");
+            logger.debug("Продюсер успешно отправил в Kafka сообщение о создании юзера");
             return userResponseDto;
         } catch (DataAccessException e) {
-            logger.log(Level.WARNING,"Не удалось сохранить нового user", e);
+            logger.warn("Не удалось сохранить нового user", e);
             throw new NoSaveNewUserException("Не удалось сохранить нового user", e);
+        } catch (ConstraintViolationException e) {
+            logger.warn("Ошибка создания юзера, этот email занят.", e);
+            throw new UniqueFieldException("Ошибка создания юзера, этот email занят.", e);
         }
     }
 
@@ -62,12 +67,15 @@ public class UserServiceImpl implements UserService {
                 logger.info("Обновление user завершилось успешно");
                 return userRepositoryDto.update(user);
             } else {
-                logger.log(Level.WARNING, String.format("Не удалось найти юзера с id = %s", id));
+                logger.warn("Не удалось найти юзера с id = {}", id);
                 throw new UserNotFoundException(String.format("Не удалось найти юзера с id = %s", id));
             }
         } catch (DataAccessException e) {
-            logger.log(Level.WARNING,"Не удалось обновить user", e);
+            logger.warn("Не удалось обновить user", e);
             throw new NoUpdateUserException("Не удалось обновить user", e);
+        } catch (ConstraintViolationException e) {
+            logger.warn("Ошибка обновления юзера, этот email занят.", e);
+            throw new UniqueFieldException("Ошибка обновления юзера, этот email занят.", e);
         }
     }
 
@@ -83,13 +91,13 @@ public class UserServiceImpl implements UserService {
                 userTempKafka.setEmail(byId.get().getEmail());
                 userTempKafka.setCreateOrDelete("Delete");
                 kafkaTemplate.send("test-topic", userTempKafka);
-                logger.info("Продюсер успешно отправил в Kafka сообщение об удалении юзера");
+                logger.debug("Продюсер успешно отправил в Kafka сообщение об удалении юзера");
             } else {
-                logger.log(Level.WARNING, String.format("Не удалось найти юзера с id = %s", id));
+                logger.warn("Не удалось найти юзера с id = {}", id);
                 throw new UserNotFoundException(String.format("Не удалось найти юзера с id = %s", id));
             }
         } catch (DataAccessException e) {
-            logger.log(Level.WARNING,"Не удалось удалить user", e);
+            logger.warn("Не удалось удалить user", e);
             throw new NoDeleteUserException("Не удалось удалить user", e);
         }
     }
@@ -103,7 +111,7 @@ public class UserServiceImpl implements UserService {
             logger.info("Чтение user завершилось успешно");
             return responseDto;
         } else {
-            logger.log(Level.WARNING, String.format("Не удалось найти юзера с id = %s", id));
+            logger.warn("Не удалось найти юзера с id = {}", id);
             throw new UserNotFoundException(String.format("Не удалось найти юзера с id = %s", id));
         }
     }

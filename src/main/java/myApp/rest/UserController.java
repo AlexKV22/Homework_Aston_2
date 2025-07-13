@@ -1,6 +1,7 @@
 package myApp.rest;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import myApp.dto.dtoRequest.UserRequestDto;
 import myApp.dto.dtoResponse.UserResponseDto;
 import myApp.service.dto.UserServiceDto;
@@ -33,13 +34,13 @@ public class UserController {
     }
 
     @PutMapping("/update/{userId}")
-    public ResponseEntity<UserResponseDto> updateUser(@Valid @RequestBody UserRequestDto userRequestDto, @PathVariable Long userId) {
+    public ResponseEntity<UserResponseDto> updateUser(@Valid @RequestBody UserRequestDto userRequestDto, @Positive(message = "userId can be only positive") @PathVariable Long userId) {
         UserResponseDto userResponseDto = userServiceDto.update(userRequestDto, userId);
         return ResponseEntity.ok(userResponseDto);
     }
 
     @DeleteMapping("/delete/{userId}")
-    public ResponseEntity<Void> deleteUser(@PathVariable Long userId) {
+    public ResponseEntity<Void> deleteUser(@PathVariable @Positive(message = "userId can be only positive") Long userId) {
         userServiceDto.delete(userId);
         return ResponseEntity.noContent().build();
     }
