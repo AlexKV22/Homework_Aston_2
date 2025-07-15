@@ -1,5 +1,11 @@
 package myApp.rest;
 
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.info.Info;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import myApp.dto.dtoRequest.UserRequestDto;
@@ -16,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+@OpenAPIDefinition(info = @Info(title = "API пользователя", description = "API управления пользователем"))
 @RestController
 @RequestMapping("/user")
 public class UserController {
@@ -26,6 +33,10 @@ public class UserController {
     public UserController(UserServiceDto userServiceDto) {
         this.userServiceDto = userServiceDto;
     }
+
+    @Operation(summary = "Создание юзера", description = "Возвращает UserResponseDto с созданным юзером", responses = {
+            @ApiResponse(responseCode = "200", description = "User create", content = @Content(schema = @Schema(implementation = UserResponseDto.class))),
+    })
 
     @PostMapping("/create")
     public ResponseEntity<UserResponseDto> createUser(@Valid @RequestBody UserRequestDto userRequestDto) {

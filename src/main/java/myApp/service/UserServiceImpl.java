@@ -9,6 +9,8 @@ import myApp.exception.UserNotFoundException;
 import myApp.model.User;
 import myApp.repository.dto.UserRepositoryDto;
 import myApp.userTempKafka.UserTempKafka;
+import org.apache.kafka.clients.producer.Callback;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.hibernate.exception.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -6,9 +6,15 @@ import myApp.model.User;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.dao.DataAccessException;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.context.jdbc.SqlScriptsTestExecutionListener;
+import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 import org.springframework.transaction.TransactionSystemException;
 
 import java.sql.Date;
@@ -16,14 +22,18 @@ import java.time.LocalDate;
 import java.util.Optional;
 
 
-
-@SpringBootTest(classes = App.class)
+@DataJpaTest
+@ContextConfiguration(classes = App.class)
+@TestExecutionListeners({
+        DependencyInjectionTestExecutionListener.class,
+        SqlScriptsTestExecutionListener.class
+})
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_CLASS, value = "/schemaAndTableDrop.sql")
 class RepositoryTest {
 
     @Autowired
     private UserRepository bean;
-
 
     @Test
     @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, value = "/insertTable.sql")
@@ -33,6 +43,15 @@ class RepositoryTest {
         User saveUser = bean.save(user);
         Optional<User> byId = bean.findById(saveUser.getId());
         Assertions.assertEquals(saveUser, byId.get());
+    }
+
+    @Test
+    @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, value = "/insertTable.sql")
+    @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, value = "/truncateTable.sql")
+    void readValidUserTest() {
+        Optional<User> read = bean.findById(1L);
+        Assertions.assertTrue(read.isPresent());
+        Assertions.assertEquals("EGOR", read.get().getName());
     }
 
     @Test
@@ -56,15 +75,6 @@ class RepositoryTest {
         bean.deleteById(1L);
         Optional<User> byId = bean.findById(1L);
         Assertions.assertFalse(byId.isPresent());
-    }
-
-    @Test
-    @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, value = "/insertTable.sql")
-    @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, value = "/truncateTable.sql")
-    void readValidUserTest() {
-        Optional<User> read = bean.findById(1L);
-        Assertions.assertTrue(read.isPresent());
-        Assertions.assertEquals("EGOR", read.get().getName());
     }
 
     @Test

@@ -1,6 +1,5 @@
 package org.example.service_test;
 
-import myApp.App;
 import myApp.converter.UserMapper;
 import myApp.dto.dtoRequest.UserRequestDto;
 import myApp.dto.dtoResponse.UserResponseDto;
@@ -8,13 +7,16 @@ import myApp.exception.UserNotFoundException;
 import myApp.model.User;
 import myApp.repository.dto.UserRepositoryDtoImpl;
 import myApp.service.UserServiceImpl;
+import myApp.userTempKafka.UserTempKafka;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mapstruct.factory.Mappers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.kafka.core.KafkaTemplate;
 
 
 import java.sql.Date;
@@ -25,17 +27,19 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 
-@SpringBootTest(classes = App.class)
+@ExtendWith(MockitoExtension.class)
 class UserServiceTest {
 
     @Mock
     private UserRepositoryDtoImpl userRepositoryDto;
 
+    @Mock
+    private KafkaTemplate<String, UserTempKafka> kafkaTemplate;
+
     @InjectMocks
     private UserServiceImpl userService;
 
-    @Autowired
-    UserMapper userMapper;
+    UserMapper userMapper = Mappers.getMapper(UserMapper.class);
 
     @Test
     void createValidUserTest() {
