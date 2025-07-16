@@ -38,25 +38,25 @@ public class UserController {
             @ApiResponse(responseCode = "200", description = "User create", content = @Content(schema = @Schema(implementation = UserResponseDto.class))),
     })
 
-    @PostMapping("/create")
+    @PostMapping
     public ResponseEntity<UserResponseDto> createUser(@Valid @RequestBody UserRequestDto userRequestDto) {
         UserResponseDto userResponseDto = userServiceDto.create(userRequestDto);
         return ResponseEntity.ok(userResponseDto);
     }
 
-    @PutMapping("/update/{userId}")
+    @PutMapping("/{userId}")
     public ResponseEntity<UserResponseDto> updateUser(@Valid @RequestBody UserRequestDto userRequestDto, @Positive(message = "userId can be only positive") @PathVariable Long userId) {
         UserResponseDto userResponseDto = userServiceDto.update(userRequestDto, userId);
         return ResponseEntity.ok(userResponseDto);
     }
 
-    @DeleteMapping("/delete/{userId}")
+    @DeleteMapping("/{userId}")
     public ResponseEntity<Void> deleteUser(@PathVariable @Positive(message = "userId can be only positive") Long userId) {
         userServiceDto.delete(userId);
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/get/{userId}")
+    @GetMapping("/{userId}")
     public ResponseEntity<UserResponseDto> getUserById(@PathVariable Long userId) {
         UserResponseDto read = userServiceDto.read(userId);
         return ResponseEntity.ok(read);
