@@ -4,6 +4,7 @@ import myApp.converter.UserMapper;
 import myApp.dto.dtoRequest.UserRequestDto;
 import myApp.dto.dtoResponse.UserResponseDto;
 import myApp.exception.UserNotFoundException;
+import myApp.kafkaProducer.KafkaProducer;
 import myApp.model.User;
 import myApp.repository.dto.UserRepositoryDtoImpl;
 import myApp.service.UserServiceImpl;
@@ -34,7 +35,7 @@ class UserServiceTest {
     private UserRepositoryDtoImpl userRepositoryDto;
 
     @Mock
-    private KafkaTemplate<String, UserTempKafka> kafkaTemplate;
+    private KafkaProducer kafkaProducer;
 
     @InjectMocks
     private UserServiceImpl userService;

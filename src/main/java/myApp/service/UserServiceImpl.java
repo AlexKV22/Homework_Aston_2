@@ -6,6 +6,7 @@ import myApp.exception.NoSaveNewUserException;
 import myApp.exception.NoUpdateUserException;
 import myApp.exception.UniqueFieldException;
 import myApp.exception.UserNotFoundException;
+import myApp.kafkaProducer.KafkaProducer;
 import myApp.model.User;
 import myApp.repository.dto.UserRepositoryDto;
 import myApp.userTempKafka.UserTempKafka;
@@ -28,12 +29,12 @@ import java.util.Optional;
 public class UserServiceImpl implements UserService {
     private final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
     private final UserRepositoryDto userRepositoryDto;
-    private final KafkaTemplate<String, UserTempKafka> kafkaTemplate;
+    private final KafkaProducer kafkaProducer;
 
     @Autowired
-    public UserServiceImpl(UserRepositoryDto userRepositoryDto, KafkaTemplate<String, UserTempKafka> kafkaTemplate) {
+    public UserServiceImpl(UserRepositoryDto userRepositoryDto, KafkaProducer kafkaProducer) {
         this.userRepositoryDto = userRepositoryDto;
-        this.kafkaTemplate = kafkaTemplate;
+        this.kafkaProducer = kafkaProducer;
     }
 
     @Override
@@ -46,7 +47,7 @@ public class UserServiceImpl implements UserService {
             UserTempKafka userTempKafka = new UserTempKafka();
             userTempKafka.setEmail(user.getEmail());
             userTempKafka.setCreateOrDelete("Create");
-            kafkaTemplate.send("test-topic", userTempKafka);
+            kafkaProducer.sendMessage(userTempKafka);
             logger.debug("Продюсер успешно отправил в Kafka сообщение о создании юзера");
             return userResponseDto;
         } catch (DataAccessException e) {
@@ -92,7 +93,7 @@ public class UserServiceImpl implements UserService {
                 UserTempKafka userTempKafka = new UserTempKafka();
                 userTempKafka.setEmail(byId.get().getEmail());
                 userTempKafka.setCreateOrDelete("Delete");
-                kafkaTemplate.send("test-topic", userTempKafka);
+                kafkaProducer.sendMessage(userTempKafka);
                 logger.debug("Продюсер успешно отправил в Kafka сообщение об удалении юзера");
             } else {
                 logger.warn("Не удалось найти юзера с id = {}", id);
