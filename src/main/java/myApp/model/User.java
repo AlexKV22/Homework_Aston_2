@@ -1,5 +1,6 @@
 package myApp.model;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -27,16 +28,16 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @Column
-    @NotNull
+    @NotNull(message = "Username cannot be null")
     @NotBlank
     private String name;
     @Column
-    @NotNull
+    @NotNull(message = "Email cannot be null")
     @NotBlank
     private String email;
     @Column
-    @NotNull
-    @Positive
+    @NotNull(message = "Age cannot be null")
+    @Positive(message = "Age can be only positive")
     private Integer age;
     @Column
     @NotNull

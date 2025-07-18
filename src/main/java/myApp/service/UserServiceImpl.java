@@ -8,6 +8,7 @@ import myApp.exception.NoSaveNewUserException;
 import myApp.exception.NoUpdateUserException;
 import myApp.exception.UniqueFieldException;
 import myApp.exception.UserNotFoundException;
+import myApp.exception.UserNotReadException;
 import myApp.kafkaProducer.KafkaProducer;
 import myApp.model.User;
 import myApp.repository.UserRepository;
@@ -113,14 +114,19 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(readOnly = true)
     public UserResponseDto read(Long id) {
-        Optional<User> readUser = userRepository.findById(id);
-        if (readUser.isPresent()) {
-            UserResponseDto userResponseDto = userMapper.entityToDto(readUser.get());
-            logger.info("Чтение user завершилось успешно");
-            return userResponseDto;
-        } else {
-            logger.warn("Не удалось найти юзера с id = {}", id);
-            throw new UserNotFoundException(String.format("Не удалось найти юзера с id = %s", id));
+        try {
+            Optional<User> readUser = userRepository.findById(id);
+            if (readUser.isPresent()) {
+                UserResponseDto userResponseDto = userMapper.entityToDto(readUser.get());
+                logger.info("Чтение user завершилось успешно");
+                return userResponseDto;
+            } else {
+                logger.warn("Не удалось найти юзера с id = {}", id);
+                throw new UserNotFoundException(String.format("Не удалось найти юзера с id = %s", id));
+            }
+        } catch (DataAccessException e) {
+            logger.warn("Не удалось прочитать user, ошибка на сервере", e);
+            throw new UserNotReadException("Не удалось прочитать user, ошибка на сервере", e);
         }
     }
 }
