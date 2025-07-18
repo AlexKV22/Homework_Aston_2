@@ -1,5 +1,7 @@
 package myApp.service;
 
+import myApp.converter.UserMapper;
+import myApp.dto.dtoRequest.UserRequestDto;
 import myApp.dto.dtoResponse.UserResponseDto;
 import myApp.exception.NoDeleteUserException;
 import myApp.exception.NoSaveNewUserException;
@@ -8,16 +10,13 @@ import myApp.exception.UniqueFieldException;
 import myApp.exception.UserNotFoundException;
 import myApp.kafkaProducer.KafkaProducer;
 import myApp.model.User;
-import myApp.repository.dto.UserRepositoryDto;
-import myApp.userTempKafka.UserTempKafka;
-import org.apache.kafka.clients.producer.Callback;
-import org.apache.kafka.clients.producer.ProducerRecord;
+import myApp.repository.UserRepository;
+import myApp.userMessageKafka.UserMessageKafka;
 import org.hibernate.exception.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,28 +27,31 @@ import java.util.Optional;
 @Service
 public class UserServiceImpl implements UserService {
     private final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
-    private final UserRepositoryDto userRepositoryDto;
+    private final UserRepository userRepository;
     private final KafkaProducer kafkaProducer;
+    private final UserMapper userMapper;
 
     @Autowired
-    public UserServiceImpl(UserRepositoryDto userRepositoryDto, KafkaProducer kafkaProducer) {
-        this.userRepositoryDto = userRepositoryDto;
+    public UserServiceImpl(UserRepository userRepository, KafkaProducer kafkaProducer, UserMapper userMapper) {
+        this.userRepository = userRepository;
         this.kafkaProducer = kafkaProducer;
+        this.userMapper = userMapper;
     }
 
     @Override
     @Transactional
-    public UserResponseDto create(User user) {
+    public UserResponseDto create(UserRequestDto userRequestDto) {
         try {
+            User user = userMapper.dtoToEntity(userRequestDto);
             user.setCreated_at(Date.valueOf(LocalDate.now()));
-            UserResponseDto userResponseDto = userRepositoryDto.create(user);
+            User saveUser = userRepository.save(user);
             logger.info("Создание user завершилось успешно");
-            UserTempKafka userTempKafka = new UserTempKafka();
-            userTempKafka.setEmail(user.getEmail());
-            userTempKafka.setCreateOrDelete("Create");
-            kafkaProducer.sendMessage(userTempKafka);
+            UserMessageKafka userMessageKafka = new UserMessageKafka();
+            userMessageKafka.setEmail(user.getEmail());
+            userMessageKafka.setCreateOrDelete("Create");
+            kafkaProducer.sendMessage(userMessageKafka);
             logger.debug("Продюсер успешно отправил в Kafka сообщение о создании юзера");
-            return userResponseDto;
+            return userMapper.entityToDto(saveUser);
         } catch (DataAccessException e) {
             logger.warn("Не удалось сохранить нового user", e);
             throw new NoSaveNewUserException("Не удалось сохранить нового user", e);
@@ -61,14 +63,17 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public UserResponseDto update(User user, Long id) {
+    public UserResponseDto update(UserRequestDto userRequestDto, Long id) {
         try {
-            Optional<User> byId = userRepositoryDto.findById(id);
+            User user = userMapper.dtoToEntity(userRequestDto);
+            Optional<User> byId = userRepository.findById(id);
             if (byId.isPresent()) {
                 user.setId(id);
                 user.setCreated_at(byId.get().getCreated_at());
+                User updateUser = userRepository.save(user);
                 logger.info("Обновление user завершилось успешно");
-                return userRepositoryDto.update(user);
+                UserResponseDto userResponseDto = userMapper.entityToDto(updateUser);
+                return userResponseDto;
             } else {
                 logger.warn("Не удалось найти юзера с id = {}", id);
                 throw new UserNotFoundException(String.format("Не удалось найти юзера с id = %s", id));
@@ -86,14 +91,14 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public void delete(Long id) {
         try {
-            Optional<User> byId = userRepositoryDto.findById(id);
+            Optional<User> byId = userRepository.findById(id);
             if (byId.isPresent()) {
-                userRepositoryDto.deleteById(id);
+                userRepository.deleteById(id);
                 logger.info("Удаление user завершилось успешно");
-                UserTempKafka userTempKafka = new UserTempKafka();
-                userTempKafka.setEmail(byId.get().getEmail());
-                userTempKafka.setCreateOrDelete("Delete");
-                kafkaProducer.sendMessage(userTempKafka);
+                UserMessageKafka userMessageKafka = new UserMessageKafka();
+                userMessageKafka.setEmail(byId.get().getEmail());
+                userMessageKafka.setCreateOrDelete("Delete");
+                kafkaProducer.sendMessage(userMessageKafka);
                 logger.debug("Продюсер успешно отправил в Kafka сообщение об удалении юзера");
             } else {
                 logger.warn("Не удалось найти юзера с id = {}", id);
@@ -108,11 +113,11 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(readOnly = true)
     public UserResponseDto read(Long id) {
-        Optional<User> readUser = userRepositoryDto.findById(id);
+        Optional<User> readUser = userRepository.findById(id);
         if (readUser.isPresent()) {
-            UserResponseDto responseDto = userRepositoryDto.getResponseDto(readUser.get());
+            UserResponseDto userResponseDto = userMapper.entityToDto(readUser.get());
             logger.info("Чтение user завершилось успешно");
-            return responseDto;
+            return userResponseDto;
         } else {
             logger.warn("Не удалось найти юзера с id = {}", id);
             throw new UserNotFoundException(String.format("Не удалось найти юзера с id = %s", id));

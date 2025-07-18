@@ -1,4 +1,4 @@
-package myApp.userTempKafka;
+package myApp.userMessageKafka;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -9,7 +9,7 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserTempKafka {
+public class UserMessageKafka {
     private String email;
     private String createOrDelete;
 }
