@@ -2,7 +2,6 @@ package myApp.service;
 
 import myApp.converter.UserMapper;
 import myApp.dto.dtoRequest.UserRequestDto;
-import myApp.dto.dtoResponse.UserResponseDto;
 import myApp.exception.NoDeleteUserException;
 import myApp.exception.NoSaveNewUserException;
 import myApp.exception.NoUpdateUserException;
@@ -41,7 +40,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public UserResponseDto create(UserRequestDto userRequestDto) {
+    public User create(UserRequestDto userRequestDto) {
         try {
             User user = userMapper.dtoToEntity(userRequestDto);
             user.setCreated_at(Date.valueOf(LocalDate.now()));
@@ -52,7 +51,7 @@ public class UserServiceImpl implements UserService {
             userMessageKafka.setCreateOrDelete("Create");
             kafkaProducer.sendMessage(userMessageKafka);
             logger.debug("Продюсер успешно отправил в Kafka сообщение о создании юзера");
-            return userMapper.entityToDto(saveUser);
+            return saveUser;
         } catch (DataAccessException e) {
             logger.warn("Не удалось сохранить нового user", e);
             throw new NoSaveNewUserException("Не удалось сохранить нового user", e);
@@ -64,7 +63,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public UserResponseDto update(UserRequestDto userRequestDto, Long id) {
+    public User update(UserRequestDto userRequestDto, Long id) {
         try {
             User user = userMapper.dtoToEntity(userRequestDto);
             Optional<User> byId = userRepository.findById(id);
@@ -73,8 +72,7 @@ public class UserServiceImpl implements UserService {
                 user.setCreated_at(byId.get().getCreated_at());
                 User updateUser = userRepository.save(user);
                 logger.info("Обновление user завершилось успешно");
-                UserResponseDto userResponseDto = userMapper.entityToDto(updateUser);
-                return userResponseDto;
+                return updateUser;
             } else {
                 logger.warn("Не удалось найти юзера с id = {}", id);
                 throw new UserNotFoundException(String.format("Не удалось найти юзера с id = %s", id));
@@ -113,13 +111,12 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    public UserResponseDto read(Long id) {
+    public User read(Long id) {
         try {
             Optional<User> readUser = userRepository.findById(id);
             if (readUser.isPresent()) {
-                UserResponseDto userResponseDto = userMapper.entityToDto(readUser.get());
                 logger.info("Чтение user завершилось успешно");
-                return userResponseDto;
+                return readUser.get();
             } else {
                 logger.warn("Не удалось найти юзера с id = {}", id);
                 throw new UserNotFoundException(String.format("Не удалось найти юзера с id = %s", id));

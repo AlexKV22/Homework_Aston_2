@@ -2,7 +2,6 @@ package org.example.service_test;
 
 import myApp.converter.UserMapper;
 import myApp.dto.dtoRequest.UserRequestDto;
-import myApp.dto.dtoResponse.UserResponseDto;
 import myApp.exception.UserNotFoundException;
 import myApp.kafkaProducer.KafkaProducer;
 import myApp.model.User;
@@ -46,14 +45,12 @@ class UserServiceTest {
         User user = new User("ENOT", "ssdsds", 56, Date.valueOf(LocalDate.now()));
         user.setId(1L);
         UserRequestDto userRequestDto = new UserRequestDto("ENOT", "ssdsds", 56);
-        UserResponseDto userResponseDto = new UserResponseDto(1L, "ENOT", "ssdsds", 56);
         when(userRepository.save(user)).thenReturn(user);
         when(userMapper.dtoToEntity(userRequestDto)).thenReturn(user);
-        when(userMapper.entityToDto(user)).thenReturn(userResponseDto);
-        UserResponseDto userResponseDtoUser = userService.create(userRequestDto);
+        User userReady = userService.create(userRequestDto);
         Mockito.verify(userRepository, Mockito.times(1)).save(user);
         Mockito.verify(kafkaProducer, Mockito.times(1)).sendMessage(any(UserMessageKafka.class));
-        Assertions.assertEquals(userResponseDto, userResponseDtoUser);
+        Assertions.assertEquals(user, userReady);
     }
 
 
@@ -72,11 +69,9 @@ class UserServiceTest {
     void readValidUserTest() {
         User user = new User("ENOT", "ssdsds", 56, Date.valueOf(LocalDate.now()));
         user.setId(1L);
-        UserResponseDto userResponseDto = new UserResponseDto(1L, "ENOT", "ssdsds", 56);
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-        when(userMapper.entityToDto(user)).thenReturn(userResponseDto);
-        UserResponseDto read = userService.read(1L);
-        Assertions.assertEquals(userResponseDto, read);
+        User read = userService.read(1L);
+        Assertions.assertEquals(user, read);
         Mockito.verify(userRepository, Mockito.times(1)).findById(1L);
     }
 
@@ -90,7 +85,6 @@ class UserServiceTest {
     @Test
     void updateValidUserTest() {
         UserRequestDto userRequestDto = new UserRequestDto("MOLOKO", "rith", 100);
-        UserResponseDto userResponseDto = new UserResponseDto(1L, "MOLOKO", "rith", 100);
 
         User userFromDto = new User("MOLOKO", "rith", 100, Date.valueOf(LocalDate.now()));
 
@@ -106,12 +100,11 @@ class UserServiceTest {
         Mockito.when(userMapper.dtoToEntity(userRequestDto)).thenReturn(userFromDto);
         Mockito.when(userRepository.findById(1L)).thenReturn(Optional.of(userFromDatabase));
         Mockito.when(userRepository.save(updatedUser)).thenReturn(updatedUser);
-        Mockito.when(userMapper.entityToDto(updatedUser)).thenReturn(userResponseDto);
-        UserResponseDto update = userService.update(userRequestDto, 1L);
+        User update = userService.update(userRequestDto, 1L);
 
-        Assertions.assertEquals(userResponseDto.id(), update.id());
-        Assertions.assertEquals(userResponseDto.name(), update.name());
-        Assertions.assertEquals(userResponseDto.email(), update.email());
+        Assertions.assertEquals(updatedUser.getId(), update.getId());
+        Assertions.assertEquals(updatedUser.getName(), update.getName());
+        Assertions.assertEquals(updatedUser.getEmail(), update.getEmail());
         Mockito.verify(userRepository, Mockito.times(1)).findById(1L);
     }
 

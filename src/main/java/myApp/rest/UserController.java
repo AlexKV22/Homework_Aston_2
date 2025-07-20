@@ -11,8 +11,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.servers.Server;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
+import myApp.assembler.UserModelAssembler;
 import myApp.dto.dtoRequest.UserRequestDto;
 import myApp.dto.dtoResponse.UserResponseDto;
+import myApp.model.User;
 import myApp.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +26,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.hateoas.EntityModel;
 
 
 @OpenAPIDefinition(info = @Info(title = "API пользователя", description = "API управления пользователем"),
@@ -33,10 +36,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserController {
 
     private final UserService userService;
+    private final UserModelAssembler userModelAssembler;
 
     @Autowired
-    public UserController(UserService userService) {
+    public UserController(UserService userService, UserModelAssembler userModelAssembler) {
         this.userService = userService;
+        this.userModelAssembler = userModelAssembler;
     }
 
 /*------------------------------------------*/
@@ -50,7 +55,7 @@ public class UserController {
                }
     )
     @PostMapping
-    public ResponseEntity<UserResponseDto> createUser(
+    public ResponseEntity<EntityModel<UserResponseDto>> createUser(
                     @Valid
                     @io.swagger.v3.oas.annotations.parameters.RequestBody (
                             description = "Структура запроса к созданию юзера",
@@ -62,8 +67,9 @@ public class UserController {
                     @RequestBody UserRequestDto userRequestDto
     )
     {
-        UserResponseDto userResponseDto = userService.create(userRequestDto);
-        return ResponseEntity.ok(userResponseDto);
+        User user = userService.create(userRequestDto);
+        EntityModel<UserResponseDto> model = userModelAssembler.toModel(user);
+        return ResponseEntity.ok(model);
     }
 
 
@@ -78,7 +84,7 @@ public class UserController {
             }
     )
     @PutMapping("/{userId}")
-    public ResponseEntity<UserResponseDto> updateUser(
+    public ResponseEntity<EntityModel<UserResponseDto>> updateUser(
                     @Positive(message = "userId can be only positive") @Parameter(description = "Айди юзера для обновления", required = true) @PathVariable Long userId,
                     @io.swagger.v3.oas.annotations.parameters.RequestBody (
                             description = "Структура запроса к обновлению юзера",
@@ -90,8 +96,9 @@ public class UserController {
                     @Valid @RequestBody UserRequestDto userRequestDto
     )
     {
-        UserResponseDto userResponseDto = userService.update(userRequestDto, userId);
-        return ResponseEntity.ok(userResponseDto);
+        User update = userService.update(userRequestDto, userId);
+        EntityModel<UserResponseDto> model = userModelAssembler.toModel(update);
+        return ResponseEntity.ok(model);
     }
 
 
@@ -117,19 +124,19 @@ public class UserController {
 
 /*------------------------------------------*/
     @Operation(summary = "Чтение юзера",
-            description = "Читает юзера, возвращает UserResponseDto с найденным юзером",
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "Юзер успешно найден", content = @Content(schema = @Schema(implementation = UserResponseDto.class))),
-                    @ApiResponse(responseCode = "500", description = "Не удалось найти юзера, ошибка на сервере"),
-                    @ApiResponse(responseCode = "404", description = "Юзер в базе не найден")
-            }
+        description = "Читает юзера, возвращает UserResponseDto с найденным юзером",
+        responses = {
+                @ApiResponse(responseCode = "200", description = "Юзер успешно найден", content = @Content(schema = @Schema(implementation = UserResponseDto.class))),
+                @ApiResponse(responseCode = "500", description = "Не удалось найти юзера, ошибка на сервере"),
+                @ApiResponse(responseCode = "404", description = "Юзер в базе не найден")
+        }
     )
     @GetMapping("/{userId}")
-    public ResponseEntity<UserResponseDto> getUserById(
-            @Positive(message = "userId can be only positive") @Parameter(description = "Айди юзера для поиска", required = true) @PathVariable Long userId
+    public ResponseEntity<EntityModel<UserResponseDto>> getUserById(
+        @Positive(message = "userId can be only positive") @Parameter(description = "Айди юзера для поиска", required = true) @PathVariable Long userId
     )
     {
-        UserResponseDto read = userService.read(userId);
-        return ResponseEntity.ok(read);
+        EntityModel<UserResponseDto> model = userModelAssembler.toModel(userService.read(userId));
+        return ResponseEntity.ok(model);
     }
 }
