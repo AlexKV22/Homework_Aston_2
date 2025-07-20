@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.servers.Server;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import myApp.dto.dtoRequest.UserRequestDto;
@@ -25,7 +26,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 
-@OpenAPIDefinition(info = @Info(title = "API пользователя", description = "API управления пользователем"))
+@OpenAPIDefinition(info = @Info(title = "API пользователя", description = "API управления пользователем"),
+        servers = @Server(url = "http://localhost:8080"))
 @RestController
 @RequestMapping("/user")
 public class UserController {
