@@ -5,8 +5,8 @@ import myApp.dto.dtoResponse.UserResponseDto;
 import myApp.model.User;
 
 public interface UserService {
-    User create(UserRequestDto userRequestDto);
-    User update(UserRequestDto userRequestDto, Long id);
+    UserResponseDto create(UserRequestDto userRequestDto);
+    UserResponseDto update(UserRequestDto userRequestDto, Long id);
     void delete(Long id);
     User read(Long id);
 }

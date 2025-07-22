@@ -25,8 +25,6 @@ public class UserModelAssembler implements RepresentationModelAssembler<User, En
         UserResponseDto userResponseDto = userMapper.entityToDto(entity);
         return EntityModel.of(userResponseDto,
                 WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(UserController.class).getUserById(entity.getId())).withRel("Чтение юзера"),
-                WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(UserController.class).createUser(null)).withRel("Создание юзера"),
-                WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(UserController.class).updateUser(entity.getId(), null)).withRel("Обновление юзера"),
                 WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(UserController.class).deleteUser(entity.getId())).withRel("Удаление юзера")
                 );
     }

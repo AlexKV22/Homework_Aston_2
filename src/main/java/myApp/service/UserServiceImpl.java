@@ -2,6 +2,7 @@ package myApp.service;
 
 import myApp.converter.UserMapper;
 import myApp.dto.dtoRequest.UserRequestDto;
+import myApp.dto.dtoResponse.UserResponseDto;
 import myApp.exception.NoDeleteUserException;
 import myApp.exception.NoSaveNewUserException;
 import myApp.exception.NoUpdateUserException;
@@ -40,7 +41,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public User create(UserRequestDto userRequestDto) {
+    public UserResponseDto create(UserRequestDto userRequestDto) {
         try {
             User user = userMapper.dtoToEntity(userRequestDto);
             user.setCreated_at(Date.valueOf(LocalDate.now()));
@@ -51,7 +52,7 @@ public class UserServiceImpl implements UserService {
             userMessageKafka.setCreateOrDelete("Create");
             kafkaProducer.sendMessage(userMessageKafka);
             logger.debug("Продюсер успешно отправил в Kafka сообщение о создании юзера");
-            return saveUser;
+            return userMapper.entityToDto(saveUser);
         } catch (DataAccessException e) {
             logger.warn("Не удалось сохранить нового user", e);
             throw new NoSaveNewUserException("Не удалось сохранить нового user", e);
@@ -63,7 +64,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public User update(UserRequestDto userRequestDto, Long id) {
+    public UserResponseDto update(UserRequestDto userRequestDto, Long id) {
         try {
             User user = userMapper.dtoToEntity(userRequestDto);
             Optional<User> byId = userRepository.findById(id);
@@ -72,7 +73,7 @@ public class UserServiceImpl implements UserService {
                 user.setCreated_at(byId.get().getCreated_at());
                 User updateUser = userRepository.save(user);
                 logger.info("Обновление user завершилось успешно");
-                return updateUser;
+                return userMapper.entityToDto(updateUser);
             } else {
                 logger.warn("Не удалось найти юзера с id = {}", id);
                 throw new UserNotFoundException(String.format("Не удалось найти юзера с id = %s", id));

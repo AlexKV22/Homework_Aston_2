@@ -57,19 +57,11 @@ class ControllerTest {
         UserResponseDto userResponseDto = new UserResponseDto(1L, "EGORKA", "23esd", 600);
         User user = new User("EGORKA", "23esd", 600, Date.valueOf(LocalDate.now()));
         user.setId(1L);
-        Mockito.when(userService.create(userRequestDto)).thenReturn(user);
-        EntityModel<UserResponseDto> model = EntityModel.of(userResponseDto,
-                WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(UserController.class).getUserById(user.getId())).withRel("Чтение юзера"),
-                WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(UserController.class).createUser(null)).withRel("Создание юзера"),
-                WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(UserController.class).updateUser(user.getId(), null)).withRel("Обновление юзера"),
-                WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(UserController.class).deleteUser(user.getId())).withRel("Удаление юзера")
-        );
-        Mockito.when(userModelAssembler.toModel(user)).thenReturn(model);
+        Mockito.when(userService.create(userRequestDto)).thenReturn(userResponseDto);
 
         mockMvc.perform(post("/user").content(objectMapper.writeValueAsBytes(userRequestDto)).contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.name").value("EGORKA"));
         Mockito.verify(userService, Mockito.times(1)).create(userRequestDto);
-        Mockito.verify(userModelAssembler, Mockito.times(1)).toModel(user);
     }
 
     @Test
@@ -95,20 +87,12 @@ class ControllerTest {
         UserResponseDto userResponseDto = new UserResponseDto(1L, "MISHA", "23esd", 600);
         User user = new User("MISHA", "23esd", 600, Date.valueOf(LocalDate.now()));
         user.setId(1L);
-        Mockito.when(userService.update(userRequestDto, 1L)).thenReturn(user);
-        EntityModel<UserResponseDto> model = EntityModel.of(userResponseDto,
-                WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(UserController.class).getUserById(user.getId())).withRel("Чтение юзера"),
-                WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(UserController.class).createUser(null)).withRel("Создание юзера"),
-                WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(UserController.class).updateUser(user.getId(), null)).withRel("Обновление юзера"),
-                WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(UserController.class).deleteUser(user.getId())).withRel("Удаление юзера")
-        );
-        Mockito.when(userModelAssembler.toModel(user)).thenReturn(model);
+        Mockito.when(userService.update(userRequestDto, 1L)).thenReturn(userResponseDto);
 
         mockMvc.perform(put("/user/{userId}", 1L).content(objectMapper.writeValueAsBytes(userRequestDto))
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.name").value("MISHA"));
         Mockito.verify(userService, Mockito.times(1)).update(userRequestDto, 1L);
-        Mockito.verify(userModelAssembler, Mockito.times(1)).toModel(user);
     }
 
     @Test

@@ -55,7 +55,7 @@ public class UserController {
                }
     )
     @PostMapping
-    public ResponseEntity<EntityModel<UserResponseDto>> createUser(
+    public ResponseEntity<UserResponseDto> createUser(
                     @Valid
                     @io.swagger.v3.oas.annotations.parameters.RequestBody (
                             description = "Структура запроса к созданию юзера",
@@ -67,9 +67,8 @@ public class UserController {
                     @RequestBody UserRequestDto userRequestDto
     )
     {
-        User user = userService.create(userRequestDto);
-        EntityModel<UserResponseDto> model = userModelAssembler.toModel(user);
-        return ResponseEntity.ok(model);
+        UserResponseDto userResponseDto = userService.create(userRequestDto);
+        return ResponseEntity.ok(userResponseDto);
     }
 
 
@@ -84,7 +83,7 @@ public class UserController {
             }
     )
     @PutMapping("/{userId}")
-    public ResponseEntity<EntityModel<UserResponseDto>> updateUser(
+    public ResponseEntity<UserResponseDto> updateUser(
                     @Positive(message = "userId can be only positive") @Parameter(description = "Айди юзера для обновления", required = true) @PathVariable Long userId,
                     @io.swagger.v3.oas.annotations.parameters.RequestBody (
                             description = "Структура запроса к обновлению юзера",
@@ -96,9 +95,8 @@ public class UserController {
                     @Valid @RequestBody UserRequestDto userRequestDto
     )
     {
-        User update = userService.update(userRequestDto, userId);
-        EntityModel<UserResponseDto> model = userModelAssembler.toModel(update);
-        return ResponseEntity.ok(model);
+        UserResponseDto update = userService.update(userRequestDto, userId);
+        return ResponseEntity.ok(update);
     }
 
 
