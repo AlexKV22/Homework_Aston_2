@@ -14,7 +14,6 @@ import jakarta.validation.constraints.Positive;
 import myApp.assembler.UserModelAssembler;
 import myApp.dto.dtoRequest.UserRequestDto;
 import myApp.dto.dtoResponse.UserResponseDto;
-import myApp.model.User;
 import myApp.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

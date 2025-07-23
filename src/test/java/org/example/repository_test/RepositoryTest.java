@@ -1,6 +1,6 @@
 package org.example.repository_test;
 
-import myApp.App;
+import myApp.UserApp;
 import myApp.repository.UserRepository;
 import myApp.model.User;
 import org.junit.jupiter.api.Assertions;
@@ -8,7 +8,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.dao.DataAccessException;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
@@ -23,7 +22,7 @@ import java.util.Optional;
 
 
 @DataJpaTest
-@ContextConfiguration(classes = App.class)
+@ContextConfiguration(classes = UserApp.class)
 @TestExecutionListeners({
         DependencyInjectionTestExecutionListener.class,
         SqlScriptsTestExecutionListener.class

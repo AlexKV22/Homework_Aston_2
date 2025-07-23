@@ -1,7 +1,7 @@
 package org.example.controller_test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import myApp.App;
+import myApp.UserApp;
 import myApp.assembler.UserModelAssembler;
 import myApp.dto.dtoRequest.UserRequestDto;
 import myApp.dto.dtoResponse.UserResponseDto;
@@ -32,7 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(UserController.class)
-@ContextConfiguration(classes = App.class)
+@ContextConfiguration(classes = UserApp.class)
 class ControllerTest {
 
     @Autowired

@@ -54,7 +54,7 @@ public class ExceptionHandler {
     @ResponseBody
     public Map<String, String> validateException(MethodArgumentNotValidException e) {
         HashMap<String, String> errors = new HashMap<>();
-        e.getBindingResult().getAllErrors().forEach((error) -> {
+        e.getBindingResult().getAllErrors().forEach(error -> {
             String fieldName = ((org.springframework.validation.FieldError) error).getField();
             String errorMessage = error.getDefaultMessage();
             errors.put(fieldName, errorMessage);
