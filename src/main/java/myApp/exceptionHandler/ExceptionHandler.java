@@ -53,7 +53,7 @@ public class ExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ResponseBody
     public Map<String, String> validateException(MethodArgumentNotValidException e) {
-        HashMap<String, String> errors = new HashMap<>();
+        Map<String, String> errors = new HashMap<>();
         e.getBindingResult().getAllErrors().forEach(error -> {
             String fieldName = ((org.springframework.validation.FieldError) error).getField();
             String errorMessage = error.getDefaultMessage();
