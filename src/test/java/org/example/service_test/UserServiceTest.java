@@ -5,10 +5,12 @@ import myApp.dto.dtoRequest.UserRequestDto;
 import myApp.dto.dtoResponse.UserResponseDto;
 import myApp.exception.UserNotFoundException;
 import myApp.kafkaProducer.KafkaProducer;
+import myApp.kafkaSender.KafkaSender;
 import myApp.model.User;
 import myApp.repository.UserRepository;
 import myApp.service.UserServiceImpl;
 import myApp.userMessageKafka.UserMessageKafka;
+import myApp.utils.StatusSendKafka;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,7 +35,7 @@ class UserServiceTest {
     private UserRepository userRepository;
 
     @Mock
-    private KafkaProducer kafkaProducer;
+    private KafkaSender kafkaSender;
 
     @InjectMocks
     private UserServiceImpl userService;
@@ -52,7 +54,7 @@ class UserServiceTest {
         when(userMapper.entityToDto(user)).thenReturn(userResponseDto);
         UserResponseDto userResponseDtoReady = userService.create(userRequestDto);
         Mockito.verify(userRepository, Mockito.times(1)).save(user);
-        Mockito.verify(kafkaProducer, Mockito.times(1)).sendMessage(any(UserMessageKafka.class));
+        Mockito.verify(kafkaSender, Mockito.times(1)).sendingKafka(any(User.class), any(StatusSendKafka.class));
         Assertions.assertEquals(userResponseDto, userResponseDtoReady);
     }
 
@@ -65,7 +67,7 @@ class UserServiceTest {
         when(userRepository.save(any(User.class))).thenThrow(new NullPointerException("Cannot be null"));
         Assertions.assertThrows(NullPointerException.class, () -> userService.create(userRequestDto));
         Mockito.verify(userRepository, Mockito.times(1)).save(user);
-        Mockito.verify(kafkaProducer, never()).sendMessage(any(UserMessageKafka.class));
+        Mockito.verify(kafkaSender, never()).sendingKafka(any(User.class), any(StatusSendKafka.class));
     }
 
     @Test
@@ -129,7 +131,7 @@ class UserServiceTest {
         Mockito.when(userRepository.findById(1L)).thenReturn(Optional.of(user));
         Assertions.assertDoesNotThrow(() -> userService.delete(1L));
         Mockito.verify(userRepository, Mockito.times(1)).findById(1L);
-        Mockito.verify(kafkaProducer, Mockito.times(1)).sendMessage(any(UserMessageKafka.class));
+        Mockito.verify(kafkaSender, Mockito.times(1)).sendingKafka(any(User.class), any(StatusSendKafka.class));
     }
 
     @Test

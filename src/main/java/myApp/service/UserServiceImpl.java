@@ -9,10 +9,10 @@ import myApp.exception.NoUpdateUserException;
 import myApp.exception.UniqueFieldException;
 import myApp.exception.UserNotFoundException;
 import myApp.exception.UserNotReadException;
-import myApp.kafkaProducer.KafkaProducer;
+import myApp.kafkaSender.KafkaSender;
 import myApp.model.User;
 import myApp.repository.UserRepository;
-import myApp.userMessageKafka.UserMessageKafka;
+import myApp.utils.StatusSendKafka;
 import org.hibernate.exception.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,14 +29,14 @@ import java.util.Optional;
 public class UserServiceImpl implements UserService {
     private final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
     private final UserRepository userRepository;
-    private final KafkaProducer kafkaProducer;
+    private final KafkaSender kafkaSender;
     private final UserMapper userMapper;
 
     @Autowired
-    public UserServiceImpl(UserRepository userRepository, KafkaProducer kafkaProducer, UserMapper userMapper) {
+    public UserServiceImpl(UserRepository userRepository, UserMapper userMapper, KafkaSender kafkaSender) {
         this.userRepository = userRepository;
-        this.kafkaProducer = kafkaProducer;
         this.userMapper = userMapper;
+        this.kafkaSender = kafkaSender;
     }
 
     @Override
@@ -47,10 +47,7 @@ public class UserServiceImpl implements UserService {
             user.setCreated_at(Date.valueOf(LocalDate.now()));
             User saveUser = userRepository.save(user);
             logger.info("Создание user завершилось успешно");
-            UserMessageKafka userMessageKafka = new UserMessageKafka();
-            userMessageKafka.setEmail(user.getEmail());
-            userMessageKafka.setCreateOrDelete("Create");
-            kafkaProducer.sendMessage(userMessageKafka);
+            kafkaSender.sendingKafka(saveUser, StatusSendKafka.CREATE);
             logger.debug("Продюсер успешно отправил в Kafka сообщение о создании юзера");
             return userMapper.entityToDto(saveUser);
         } catch (DataAccessException e) {
@@ -95,10 +92,7 @@ public class UserServiceImpl implements UserService {
             if (byId.isPresent()) {
                 userRepository.deleteById(id);
                 logger.info("Удаление user завершилось успешно");
-                UserMessageKafka userMessageKafka = new UserMessageKafka();
-                userMessageKafka.setEmail(byId.get().getEmail());
-                userMessageKafka.setCreateOrDelete("Delete");
-                kafkaProducer.sendMessage(userMessageKafka);
+                kafkaSender.sendingKafka(byId.get(), StatusSendKafka.DELETE);
                 logger.debug("Продюсер успешно отправил в Kafka сообщение об удалении юзера");
             } else {
                 logger.warn("Не удалось найти юзера с id = {}", id);
