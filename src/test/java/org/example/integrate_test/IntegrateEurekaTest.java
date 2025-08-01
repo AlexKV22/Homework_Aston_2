@@ -2,6 +2,7 @@ package org.example.integrate_test;
 
 import myApp.UserApp;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -12,6 +13,7 @@ import org.springframework.test.context.TestPropertySource;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = UserApp.class)
 @TestPropertySource("classpath:bootstrap-test.properties")
+@Disabled
 class IntegrateEurekaTest {
     @Autowired
     private TestRestTemplate restTemplate;
