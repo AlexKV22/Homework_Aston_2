@@ -11,13 +11,13 @@ import myApp.exception.UserNotFoundException;
 import myApp.model.User;
 import myApp.rest.UserController;
 import myApp.service.UserServiceImpl;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.MediaType;
@@ -36,9 +36,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(UserController.class)
 @ContextConfiguration(classes = UserApp.class)
-@ActiveProfiles("test")
-@TestPropertySource("classpath:bootstrap-test.properties")
-@Disabled
 class ControllerTest {
 
     @Autowired

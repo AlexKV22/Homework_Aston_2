@@ -4,15 +4,12 @@ import myApp.converter.UserMapper;
 import myApp.dto.dtoRequest.UserRequestDto;
 import myApp.dto.dtoResponse.UserResponseDto;
 import myApp.exception.UserNotFoundException;
-import myApp.kafkaProducer.KafkaProducer;
 import myApp.kafkaSender.KafkaSender;
 import myApp.model.User;
 import myApp.repository.UserRepository;
 import myApp.service.UserServiceImpl;
-import myApp.userMessageKafka.UserMessageKafka;
 import myApp.utils.StatusSendKafka;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -30,7 +27,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-@Disabled
 class UserServiceTest {
 
     @Mock
